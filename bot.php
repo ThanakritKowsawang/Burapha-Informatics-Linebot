@@ -5,7 +5,8 @@ include_once('BotMessage.php');
 letStart();
 
 function letStart() {
-
+	$botMessage = new BotMessage();
+	$botMessage->getMessages();
 	// Get POST body content
 	$content = file_get_contents('php://input');
 	// Parse JSON
@@ -32,7 +33,7 @@ function letStart() {
 				$userId = $event['source']['userId'];
 				$userState = checkState($userId);
 				if ($userState == BotMessage::$STATUS_DEFAULT) {
-					$replyText1 = BotMessage::$REQUEST_STUDENT_NAME;
+					$replyText1 = $botMessage->REQUEST_STUDENT_NAME;
 					changeState($userId, BotMessage::$STATUS_WAIT_STUDENT_NAME);
 				} else if ($userState == BotMessage::$STATUS_WAIT_STUDENT_NAME) {
 					$resultStudentArray = checkStudentName($text);
@@ -41,9 +42,9 @@ function letStart() {
 						$studentId =  implode("&", $resultStudentArray);
 						setUserStudentId($userId, $studentId);
 						changeState($userId, BotMessage::$STATUS_WAIT_NATIONAL);
-						$replyText1 = BotMessage::$REQUEST_NATIONAL_ID;
+						$replyText1 = $botMessage->REQUEST_NATIONAL_ID;
 					} else {
-						$replyText1 = BotMessage::$REQUEST_FALSE_STUDENT;
+						$replyText1 = $botMessage->REQUEST_FALSE_STUDENT;
 					}
 				} else if ($userState == BotMessage::$STATUS_WAIT_NATIONAL) {
 					$studentId = getUserStudentId($userId);
@@ -60,70 +61,70 @@ function letStart() {
 						$replyText1 = getMainMenu($userId);
 						changeState($userId, BotMessage::$STATUS_WAIT_MAIN_QUEST);
 					} else {
-						$replyText1 = BotMessage::$REQUEST_FALSE_NATIONAL_ID;
-						$replyText2 = BotMessage::$REQUEST_STUDENT_NAME;
+						$replyText1 = $botMessage->REQUEST_FALSE_NATIONAL_ID;
+						$replyText2 = $botMessage->REQUEST_STUDENT_NAME;
 						changeState($userId, BotMessage::$STATUS_WAIT_STUDENT_NAME);
 					}
 				} else if ($userState == BotMessage::$STATUS_WAIT_MAIN_QUEST) {
-					if (strpos(BotMessage::$REQUEST_MAIN_INFO, $text)) {
+					if (strpos($botMessage->REQUEST_MAIN_INFO, $text)) {
 						$studentId = getUserStudentId($userId);
 						$studentDetail = getStudent($studentId);
-						$replyText1 = BotMessage::$REQUEST_INFO_NAME . $studentDetail['studentPreName'] . $studentDetail['studentFirstName'] . ' ' . $studentDetail['studentLastName'] . "\n";
-						$replyText1 .= BotMessage::$REQUEST_INFO_STUDENT_ID . $studentDetail['studentId'] . "\n";
-						$replyText1 .= BotMessage::$REQUEST_INFO_BIRTHDATE . $studentDetail['studentBirthDate'] . "\n";
-						$replyText1 .= BotMessage::$REQUEST_INFO_FACULTY . $studentDetail['studentFaculty'] . "\n";
-						$replyText1 .= BotMessage::$REQUEST_INFO_BRANCH . $studentDetail['studentBranch'] . "\n";
-						$replyText1 .= BotMessage::$REQUEST_INFO_LEVEL . $studentDetail['studentLevel'] . "\n";
-						$replyText1 .= BotMessage::$REQUEST_INFO_STATUS . $studentDetail['studentStatus'];
+						$replyText1 = $botMessage->REQUEST_INFO_NAME . $studentDetail['studentPreName'] . $studentDetail['studentFirstName'] . ' ' . $studentDetail['studentLastName'] . "\n";
+						$replyText1 .= $botMessage->REQUEST_INFO_STUDENT_ID . $studentDetail['studentId'] . "\n";
+						$replyText1 .= $botMessage->REQUEST_INFO_BIRTHDATE . $studentDetail['studentBirthDate'] . "\n";
+						$replyText1 .= $botMessage->REQUEST_INFO_FACULTY . $studentDetail['studentFaculty'] . "\n";
+						$replyText1 .= $botMessage->REQUEST_INFO_BRANCH . $studentDetail['studentBranch'] . "\n";
+						$replyText1 .= $botMessage->REQUEST_INFO_LEVEL . $studentDetail['studentLevel'] . "\n";
+						$replyText1 .= $botMessage->REQUEST_INFO_STATUS . $studentDetail['studentStatus'];
 
 						$replyText2 = getAfterMain();
 						changeState($userId, BotMessage::$STATUS_AFTER_MAIN);
 
-					} else if (stripos(BotMessage::$REQUEST_MAIN_PICTURE, $text)) {
+					} else if (stripos($botMessage->REQUEST_MAIN_PICTURE, $text)) {
 						$studentId = getUserStudentId($userId);
 						$studentDetail = getStudent($studentId);
 						$replyImageUrl1 = BotMessage::$HOST . $studentDetail['studentPictureUrl'];
 						$replyText2 = getAfterMain();
 						changeState($userId, BotMessage::$STATUS_AFTER_MAIN);
-					} else if (stripos(BotMessage::$REQUEST_MAIN_GRADE, $text)) {
+					} else if (stripos($botMessage->REQUEST_MAIN_GRADE, $text)) {
 						$studentId = getUserStudentId($userId);
 						$studentDetail = getStudent($studentId);
-						$allGrade = getGrade($userId);
+						$allGrade = getGrade($studentId);
 						$gpa = 0.00;
 						foreach ($allGrade as $grade) {
 							$gpa += (double)$grade['gradePoint'];
 						}
 						$gpa /= count($allGrade);
-						$replyText1 = BotMessage::$REQUEST_GRADE . round($gpa, 2);
+						$replyText1 = $botMessage->REQUEST_GRADE . round($gpa, 2);
 						foreach ($allGrade as $grade) {
-							$replyText1 .= "\n" . BotMessage::$REQUEST_GRADE_TERM . $grade['gradeTerm'] . BotMessage::$REQUEST_GRADE_SUM . $grade['gradePoint'];
+							$replyText1 .= "\n" . $botMessage->REQUEST_GRADE_TERM . $grade['gradeTerm'] . $botMessage->REQUEST_GRADE_SUM . $grade['gradePoint'];
 						}
 
 						$replyText2 = getAfterMain();
 						changeState($userId, BotMessage::$STATUS_AFTER_MAIN);
 
-					} else if (stripos(BotMessage::$REQUEST_MAIN_TABLE, $text)) {
+					} else if (stripos($botMessage->REQUEST_MAIN_TABLE, $text)) {
 						$studentId = getUserStudentId($userId);
 						$studentDetail = getStudent($studentId);
 						$replyImageUrl1 = BotMessage::$HOST . $studentDetail['studentTableUrl'];
 						$replyText2 = getAfterMain();
 						changeState($userId, BotMessage::$STATUS_AFTER_MAIN);
-					} else if (stripos(BotMessage::$REQUEST_MAIN_NEW_STUDENT, $text)) {
-						$replyText1 = BotMessage::$REQUEST_STUDENT_NAME;
+					} else if (stripos($botMessage->REQUEST_MAIN_NEW_STUDENT, $text)) {
+						$replyText1 = $botMessage->REQUEST_STUDENT_NAME;
 						changeState($userId, BotMessage::$STATUS_WAIT_STUDENT_NAME);
 					} else {
-						$replyText1 = BotMessage::$REQUEST_FALSE_MAIN_MENU;
+						$replyText1 = $botMessage->REQUEST_FALSE_MAIN_MENU;
 						$replyText2 = getMainMenu($userId);
 					}
 				} else if ($userState == BotMessage::$STATUS_AFTER_MAIN) {
-					if (stripos(BotMessage::$REQUEST_CHOICE_YES, $text)) {
+					if (stripos($botMessage->REQUEST_CHOICE_YES, $text)) {
 						$replyText1 = getMainMenu($userId);
 						changeState($userId, BotMessage::$STATUS_WAIT_MAIN_QUEST);
-					} else if (stripos(BotMessage::$REQUEST_CHOICE_NO, $text)) {
-						$replyText1 = BotMessage::$REQUEST_THANK_YOU;
+					} else if (stripos($botMessage->REQUEST_CHOICE_NO, $text)) {
+						$replyText1 = $botMessage->REQUEST_THANK_YOU;
 						changeState($userId, BotMessage::$STATUS_SHOW_MAIN);
 					} else {
-						$replyText1 = BotMessage::$REQUEST_FALSE_MAIN_MENU;
+						$replyText1 = $botMessage->REQUEST_FALSE_MAIN_MENU;
 						$replyText2 = getAfterMain();
 					}
 				} else if ($userState == BotMessage::$STATUS_SHOW_MAIN) {
@@ -195,123 +196,125 @@ function sendMessage($post){
 }
 
 function changeState($userId, $userState) {
-	$objConn = new db();
-	$objConn->connect();
-
-	//update user state
-	$objConn->query("UPDATE `chatbotUser` SET `userState` = '" . $userState . "' WHERE `userId` = '" . $userId . "'");
+	$botMessage = new BotMessage();
+	$botMessage->getMessages();
+	$ch = curl_init(BotMessage::$HOST ."api/changeState.php");
+	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch, CURLOPT_POSTFIELDS, "userId=" . $userId . "&userState=" . $userState);
+	$result = curl_exec($ch);
+	curl_close($ch);
 }
 
 //function to check student firstname and surname
 function checkStudentName($text) {
-	//create connection
-	$objConn = new db();
-	//let connect database
-	$objConn->connect();
-	//cut left and right space
-	$text = trim($text, ' ');
-	//split firstname and lastname
-	$doubleName = explode(' ', $text);
-	//check if can cut doubleName == 2 (if not == 1)
-	if (count($doubleName) == 1) {
-		$objConn->query("SELECT * FROM `chatbotStudent` WHERE `studentFirstName` = '" . $doubleName[0] . "' OR `studentLastName` = '" . $doubleName[0] . "'");
-	} else {
-		$objConn->query("SELECT * FROM `chatbotStudent` WHERE `studentFirstName` = '" . $doubleName[0] . "' AND `studentLastName` = '" . $doubleName[1] . "'");
-	}
-	$resultArray = [];
-	$count = 0;
-	foreach ($objConn->results->fetchall() as $temp) {
-		 $resultArray[$count] = $temp['studentId'];
-		 $count += 1;
-	}
-	return $resultArray;
+	$botMessage = new BotMessage();
+	$botMessage->getMessages();
+	$ch = curl_init(BotMessage::$HOST ."api/checkStudentName.php");
+	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch, CURLOPT_POSTFIELDS, "text=" . $text);
+	$result = json_decode(curl_exec($ch), true);
+	curl_close($ch);
+	return $result;
 }
 
 function checkState($userId) {
-	$objConn = new db();
-	$objConn->connect();
-	$objConn->query("SELECT `userState` FROM `chatbotUser` WHERE `userId` = '" . $userId . "'");
-	// $objConn->close();
-	foreach ($objConn->results->fetchall() as $temp) {
-		return $temp['userState'];
-	}
-	return 0;
+	$botMessage = new BotMessage();
+	$botMessage->getMessages();
+	$ch = curl_init(BotMessage::$HOST ."api/checkState.php");
+	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch, CURLOPT_POSTFIELDS, "userId=" . $userId);
+	$result = json_decode(curl_exec($ch), true);
+	curl_close($ch);
+	return $result[0];
 }
 
 function createUser($userId) {
-	$objConn = new db();
-	$objConn->connect();
-
-	//insert and get boolean return true or false
-	$isInsert = $objConn->query("INSERT INTO `chatbotUser` (`userId`) VALUES ('" . $userId . "')");
-	// if ($isInsert == false) {
-	// 	//set user's state to default
-	// 	$objConn->query("UPDATE `chatbotUser` SET `userState` = '0' WHERE `userId` = '" . $userId . "'");
-	// }
-
-	// $objConn->close();
+	$botMessage = new BotMessage();
+	$botMessage->getMessages();
+	$ch = curl_init(BotMessage::$HOST ."api/createUser.php");
+	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch, CURLOPT_POSTFIELDS, "userId=" . $userId);
+	$result = json_decode(curl_exec($ch), true);
+	curl_close($ch);
 }
 
 function setUserStudentId($userId, $studentId){
-	$objConn = new db();
-	$objConn->connect();
-	$objConn->query("UPDATE `chatbotUser` SET `studentId` = '" . $studentId . "' WHERE `userId` = '" . $userId . "'");
+	$botMessage = new BotMessage();
+	$botMessage->getMessages();
+	$ch = curl_init(BotMessage::$HOST ."api/setUserStudentId.php");
+	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch, CURLOPT_POSTFIELDS, "userId=" . $userId . "&studentId=" . $studentId);
+	$result = json_decode(curl_exec($ch), true);
+	curl_close($ch);
 }
 
 function getUserStudentId($userId) {
-	$objConn = new db();
-	$objConn->connect();
-	$objConn->query("SELECT `studentId` FROM `chatbotUser` WHERE `userId` = '" . $userId . "'");
-	foreach ($objConn->results->fetchall() as $temp) {
-		return $temp['studentId'];
-	}
-	return '';
+	$botMessage = new BotMessage();
+	$botMessage->getMessages();
+	$ch = curl_init(BotMessage::$HOST ."api/getUserStudentId.php");
+	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch, CURLOPT_POSTFIELDS, "userId=" . $userId);
+	$result = json_decode(curl_exec($ch), true);
+	curl_close($ch);
+	return $result[0];
 }
 
 function checkNationalId($userNational, $studentId) {
-	$objConn = new db();
-	$objConn->connect();
-	$objConn->query("SELECT `studentId` FROM `chatbotStudent` WHERE `studentId` = '" . $studentId . "' AND `userNationId` = '" . $userNational . "'");
-
-	foreach ($objConn->results->fetchall() as $temp) {
-		return $temp['studentId'];
-	}
-
-	return '';
+	$botMessage = new BotMessage();
+	$botMessage->getMessages();
+	$ch = curl_init(BotMessage::$HOST ."api/checkNationalId.php");
+	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch, CURLOPT_POSTFIELDS, "userNational=" . $userNational . "&studentId=" . $studentId);
+	$result = json_decode(curl_exec($ch), true);
+	curl_close($ch);
+	return (count($result[0]) != 0) ? $result[0] : '';
 }
 
 function getStudent($studentId) {
-	$objConn = new db();
-	$objConn->connect();
-	$objConn->query("SELECT * FROM `chatbotStudent` WHERE `studentId` = '" . $studentId . "'");
-	foreach ($objConn->results->fetchall() as $temp) {
-		return $temp;
-	}
-	return null;
+	$botMessage = new BotMessage();
+	$botMessage->getMessages();
+	$ch = curl_init(BotMessage::$HOST ."api/getStudent.php");
+	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch, CURLOPT_POSTFIELDS, "studentId=" . $studentId);
+	$result = json_decode(curl_exec($ch), true);
+	curl_close($ch);
+	return $result[0];
 }
 
-function getGrade($userId){
-	$studentId = getUserStudentId($userId);
-	$objConn = new db();
-	$objConn->connect();
-	$objConn->query("SELECT * FROM `chatbotGrade` WHERE `studentId` = '" . $studentId . "'");
-	$rows = array();
-	foreach ($objConn->results->fetchall() as $temp) {
-		$rows[] = $temp;
-	}
-	return $rows;
+function getGrade($studentId){
+	$botMessage = new BotMessage();
+	$botMessage->getMessages();
+	$ch = curl_init(BotMessage::$HOST ."api/getGrade.php");
+	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch, CURLOPT_POSTFIELDS, "studentId=" . $studentId);
+	$result = json_decode(curl_exec($ch), true);
+	curl_close($ch);
+	return $result;
 }
 
 function getMainMenu($userId) {
+	$botMessage = new BotMessage();
+	$botMessage->getMessages();
 	$studentId = getUserStudentId($userId);
 	$studentDetail = getStudent($studentId);
-	return BotMessage::$REQUEST_MAIN_MENU . " '" . $studentDetail['studentFirstName'] . " " . $studentDetail['studentLastName'] . "'\n" . BotMessage::$REQUEST_MAIN_INFO . "\n" . BotMessage::$REQUEST_MAIN_PICTURE . "\n" . BotMessage::$REQUEST_MAIN_GRADE . "\n" . BotMessage::$REQUEST_MAIN_TABLE . "\n" . BotMessage::$REQUEST_MAIN_NEW_STUDENT;				
+	return $botMessage->REQUEST_MAIN_MENU . " '" . $studentDetail['studentFirstName'] . " " . $studentDetail['studentLastName'] . "'\n" . $botMessage->REQUEST_MAIN_INFO . "\n" . $botMessage->REQUEST_MAIN_PICTURE . "\n" . $botMessage->REQUEST_MAIN_GRADE . "\n" . $botMessage->REQUEST_MAIN_TABLE . "\n" . $botMessage->REQUEST_MAIN_NEW_STUDENT;				
 }
 
 function getAfterMain(){
-	$replyText2 = BotMessage::$REQUEST_AFTER_MAIN . "\n";
-	$replyText2 .= BotMessage::$REQUEST_CHOICE_YES . "\n";
-	$replyText2 .= BotMessage::$REQUEST_CHOICE_NO;
+	$botMessage = new BotMessage();
+	$botMessage->getMessages();
+	$replyText2 = $botMessage->REQUEST_AFTER_MAIN . "\n";
+	$replyText2 .= $botMessage->REQUEST_CHOICE_YES . "\n";
+	$replyText2 .= $botMessage->REQUEST_CHOICE_NO;
 	return $replyText2;
 }
 ?>

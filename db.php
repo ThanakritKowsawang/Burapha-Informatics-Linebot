@@ -21,7 +21,7 @@ class db {
 
 	function query($sql){
 		if ($this->results=$this->link->query($sql)) {
-			return ($this->results);
+			return true;
 		}else{
 			// echo "Could not query data form database";
 			return false;
